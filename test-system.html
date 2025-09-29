@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Test - Facial Recognition Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #ccc;
+        }
+        .success {
+            border-left-color: #4CAF50;
+            background: #f0fff0;
+        }
+        .warning {
+            border-left-color: #FFC107;
+            background: #fffaf0;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        button {
+            padding: 10px 15px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>System Test - Facial Recognition Attendance</h1>
+    
+    <div class="test-section">
+        <h2>File Availability Check</h2>
+        <div id="fileCheck"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Browser Compatibility</h2>
+        <div id="browserCheck"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Local Storage Test</h2>
+        <div id="storageCheck"></div>
+        <button onclick="testLocalStorage()">Test Local Storage</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Library Dependencies</h2>
+        <div id="libraryCheck"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>System Test Results</h2>
+        <div id="systemTest"></div>
+        <button onclick="runSystemTest()">Run Complete System Test</button>
+    </div>
+
+    <script>
+        // File availability check
+        function checkFiles() {
+            const files = ['index.html', 'styles.css', 'script.js'];
+            const container = document.getElementById('fileCheck');
+            container.innerHTML = '';
+            
+            files.forEach(file => {
+                const testItem = document.createElement('div');
+                testItem.className = 'test-item';
+                
+                fetch(file)
+                    .then(response => {
+                        if (response.ok) {
+                            testItem.classList.add('success');
+                            testItem.innerHTML = `✅ ${file} - Available`;
+                        } else {
+                            testItem.classList.add('error');
+                            testItem.innerHTML = `❌ ${file} - Missing`;
+                        }
+                    })
+                    .catch(() => {
+                        testItem.classList.add('error');
+                        testItem.innerHTML = `❌ ${file} - Missing`;
+                    });
+                
+                container.appendChild(testItem);
+            });
+        }
+
+        // Browser compatibility check
+        function checkBrowser() {
+            const container = document.getElementById('browserCheck');
+            container.innerHTML = '';
+            
+            const tests = [
+                {
+                    name: 'Local Storage Support',
+                    test: () => typeof Storage !== 'undefined',
+                    message: 'Local storage is supported'
+                },
+                {
+                    name: 'Camera API Support',
+                    test: () => navigator.mediaDevices && navigator.mediaDevices.getUserMedia,
+                    message: 'Camera API is supported'
+                },
+                {
+                    name: 'Modern JavaScript (ES6+)',
+                    test: () => {
+                        try {
+                            new Function('const test = () => {}; class Test {}');
+                            return true;
+                        } catch {
+                            return false;
+                        }
+                    },
+                    message: 'ES6+ features supported'
+                }
+            ];
+
+            tests.forEach(test => {
+                const testItem = document.createElement('div');
+                testItem.className = 'test-item';
+                
+                if (test.test()) {
+                    testItem.classList.add('success');
+                    testItem.innerHTML = `✅ ${test.name} - ${test.message}`;
+                } else {
+                    testItem.classList.add('warning');
+                    testItem.innerHTML = `⚠️ ${test.name} - Not supported`;
+                }
+                
+                container.appendChild(testItem);
+            });
+        }
+
+        // Local Storage test
+        function testLocalStorage() {
+            const container = document.getElementById('storageCheck');
+            container.innerHTML = '';
+            
+            try {
+                localStorage.setItem('test', 'test-value');
+                const value = localStorage.getItem('test');
+                localStorage.removeItem('test');
+                
+                if (value === 'test-value') {
+                    container.innerHTML = `
+                        <div class="test-item success">
+                            ✅ Local Storage - Working correctly
+                        </div>
+                        <div class="test-item info">
+                            Storage available: ${localStorage.length} items
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="test-item error">
+                            ❌ Local Storage - Not working correctly
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="test-item error">
+                        ❌ Local Storage - Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Library dependency check
+        function checkLibraries() {
+            const container = document.getElementById('libraryCheck');
+            container.innerHTML = '';
+            
+            const libraries = [
+                {
+                    name: 'TensorFlow.js',
+                    global: 'tf',
+                    url: 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js',
+                    required: true
+                },
+                {
+                    name: 'BlazeFace Model',
+                    global: 'blazeface',
+                    url: 'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js',
+                    required: true
+                },
+                {
+                    name: 'Font Awesome',
+                    global: 'fontawesome',
+                    url: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+                    required: false
+                }
+            ];
+
+            libraries.forEach(lib => {
+                const testItem = document.createElement('div');
+                testItem.className = 'test-item';
+                
+                if (window[lib.global]) {
+                    testItem.classList.add('success');
+                    testItem.innerHTML = `✅ ${lib.name} - Loaded`;
+                } else {
+                    testItem.classList.add(lib.required ? 'error' : 'warning');
+                    testItem.innerHTML = `${lib.required ? '❌' : '⚠️'} ${lib.name} - ${lib.required ? 'Missing (Required)' : 'Missing (Optional)'}`;
+                    testItem.innerHTML += `<br><small>URL: ${lib.url}</small>`;
+                }
+                
+                container.appendChild(testItem);
+            });
+        }
+
+        // Complete system test
+        function runSystemTest() {
+            const container = document.getElementById('systemTest');
+            container.innerHTML = '<div class="test-item">Running tests...</div>';
+            
+            setTimeout(() => {
+                const results = [];
+                
+                // Test basic functionality
+                try {
+                    // Test if system class can be instantiated
+                    if (typeof FacialRecognitionSystem === 'function') {
+                        results.push({name: 'System Class', status: 'success', message: 'Available'});
+                    } else {
+                        results.push({name: 'System Class', status: 'error', message: 'Not defined'});
+                    }
+                } catch (error) {
+                    results.push({name: 'System Class', status: 'error', message: error.message});
+                }
+                
+                // Display results
+                container.innerHTML = '';
+                results.forEach(result => {
+                    const testItem = document.createElement('div');
+                    testItem.className = `test-item ${result.status}`;
+                    testItem.innerHTML = `${result.status === 'success' ? '✅' : '❌'} ${result.name} - ${result.message}`;
+                    container.appendChild(testItem);
+                });
+                
+                // Add recommendations
+                if (results.every(r => r.status === 'success')) {
+                    container.innerHTML += `
+                        <div class="test-item success">
+                            🎉 All tests passed! The system should work correctly.
+                        </div>
+                        <div class="test-item info">
+                            Next steps:
+                            <ul>
+                                <li>Open index.html in a web browser</li>
+                                <li>Allow camera permissions when prompted</li>
+                                <li>Start by adding students in the Student Management tab</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML += `
+                        <div class="test-item error">
+                            ⚠️ Some tests failed. Check the errors above.
+                        </div>
+                    `;
+                }
+            }, 1000);
+        }
+
+        // Run initial checks
+        window.onload = function() {
+            checkFiles();
+            checkBrowser();
+            checkLibraries();
+        };
+    </script>
+</body>
+</html>

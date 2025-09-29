@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rural School - Facial Recognition Attendance System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>Rural School Attendance System</h1>
+            </div>
+            <div class="current-time" id="currentTime"></div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar">
+                <ul>
+                    <li class="nav-item active" data-tab="attendance">
+                        <i class="fas fa-camera"></i>
+                        <span>Facial Recognition</span>
+                    </li>
+                    <li class="nav-item" data-tab="manual">
+                        <i class="fas fa-edit"></i>
+                        <span>Manual Attendance</span>
+                    </li>
+                    <li class="nav-item" data-tab="students">
+                        <i class="fas fa-users"></i>
+                        <span>Student Management</span>
+                    </li>
+                    <li class="nav-item" data-tab="reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports & Export</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Facial Recognition Tab -->
+                <div id="attendance" class="tab-content active">
+                    <div class="card">
+                        <h2><i class="fas fa-camera"></i> Facial Recognition Attendance</h2>
+                        <div class="camera-container">
+                            <video id="video" width="640" height="480" autoplay muted></video>
+                            <canvas id="canvas" width="640" height="480"></canvas>
+                        </div>
+                        <div class="controls">
+                            <button id="startCamera" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Start Camera
+                            </button>
+                            <button id="stopCamera" class="btn btn-secondary" disabled>
+                                <i class="fas fa-stop"></i> Stop Camera
+                            </button>
+                            <button id="captureFace" class="btn btn-success" disabled>
+                                <i class="fas fa-camera"></i> Capture Attendance
+                            </button>
+                        </div>
+                        <div id="recognitionStatus" class="status-message"></div>
+                        <div id="attendanceList" class="attendance-list"></div>
+                    </div>
+                </div>
+
+                <!-- Manual Attendance Tab -->
+                <div id="manual" class="tab-content">
+                    <div class="card">
+                        <h2><i class="fas fa-edit"></i> Manual Attendance Marking</h2>
+                        <div class="manual-attendance">
+                            <div class="form-group">
+                                <label for="studentSelect">Select Student:</label>
+                                <select id="studentSelect" class="form-control">
+                                    <option value="">-- Select Student --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="attendanceDate">Date:</label>
+                                <input type="date" id="attendanceDate" class="form-control" value="">
+                            </div>
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="status" value="present" checked>
+                                        <span class="radio-custom"></span>
+                                        Present
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="status" value="absent">
+                                        <span class="radio-custom"></span>
+                                        Absent
+                                    </label>
+                                </div>
+                            </div>
+                            <button id="markManualAttendance" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Mark Attendance
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Management Tab -->
+                <div id="students" class="tab-content">
+                    <div class="card">
+                        <h2><i class="fas fa-users"></i> Student Management</h2>
+                        <div class="student-management">
+                            <div class="add-student-form">
+                                <h3>Add New Student</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="studentName">Full Name:</label>
+                                        <input type="text" id="studentName" class="form-control" placeholder="Enter full name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="studentId">Student ID:</label>
+                                        <input type="text" id="studentId" class="form-control" placeholder="Enter student ID">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="studentGrade">Grade/Class:</label>
+                                        <input type="text" id="studentGrade" class="form-control" placeholder="Enter grade/class">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="studentSection">Section:</label>
+                                        <input type="text" id="studentSection" class="form-control" placeholder="Enter section">
+                                    </div>
+                                </div>
+                                <button id="addStudent" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Add Student
+                                </button>
+                                <button id="registerFace" class="btn btn-info">
+                                    <i class="fas fa-camera-retro"></i> Capture & Register Face
+                                </button>
+                            </div>
+                            <div class="camera-container" id="registrationCameraContainer" style="display: none; margin-top: 20px;">
+                                <video id="registrationVideo" width="320" height="240" autoplay muted></video>
+                                <canvas id="registrationCanvas" width="320" height="240"></canvas>
+                            </div>
+                            <div class="students-list">
+                                <h3>Registered Students</h3>
+                                <div id="studentsTable" class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Grade</th>
+                                                <th>Section</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="studentsTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reports" class="tab-content">
+                    <div class="card">
+                        <h2><i class="fas fa-chart-bar"></i> Reports & Export</h2>
+                        <div class="reports-section">
+                            <div class="report-filters">
+                                <div class="form-group">
+                                    <label for="reportDate">Select Date:</label>
+                                    <input type="date" id="reportDate" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="reportGrade">Filter by Grade:</label>
+                                    <select id="reportGrade" class="form-control">
+                                        <option value="">All Grades</option>
+                                    </select>
+                                </div>
+                                <button id="generateReport" class="btn btn-primary">
+                                    <i class="fas fa-sync"></i> Generate Report
+                                </button>
+                            </div>
+                            <div class="report-results">
+                                <div id="reportSummary" class="summary-cards">
+                                    <div class="summary-card">
+                                        <i class="fas fa-user-check"></i>
+                                        <div class="summary-content">
+                                            <span class="summary-value" id="presentCount">0</span>
+                                            <span class="summary-label">Present</span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-card">
+                                        <i class="fas fa-user-times"></i>
+                                        <div class="summary-content">
+                                            <span class="summary-value" id="absentCount">0</span>
+                                            <span class="summary-label">Absent</span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-card">
+                                        <i class="fas fa-users"></i>
+                                        <div class="summary-content">
+                                            <span class="summary-value" id="totalCount">0</span>
+                                            <span class="summary-label">Total Students</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="attendanceTable" class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Student ID</th>
+                                                <th>Name</th>
+                                                <th>Grade</th>
+                                                <th>Status</th>
+                                                <th>Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="attendanceTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="export-actions">
+                                    <button id="exportCSV" class="btn btn-success">
+                                        <i class="fas fa-file-csv"></i> Export to CSV
+                                    </button>
+                                    <button id="exportExcel" class="btn btn-success">
+                                        <i class="fas fa-file-excel"></i> Export to Excel
+                                    </button>
+                                    <button id="printReport" class="btn btn-info">
+                                        <i class="fas fa-print"></i> Print Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading facial recognition model...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
